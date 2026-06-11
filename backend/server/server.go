@@ -4,14 +4,9 @@
 package server
 
 import (
-	"net"
-	"strconv"
-
 	"github.com/Simaky/go-github-tracker/backend/app"
 	"github.com/Simaky/go-github-tracker/backend/app/config"
 )
-
-const appPort = 12010
 
 type server struct {
 	app *app.App
@@ -28,9 +23,7 @@ func (s *server) Run(version string) error {
 	return s.runHTTP(version)
 }
 
+// addressOf returns the bind address; config always supplies a default.
 func (s *server) addressOf() string {
-	if s.cfg.Listen != "" {
-		return s.cfg.Listen
-	}
-	return net.JoinHostPort("0.0.0.0", strconv.Itoa(appPort))
+	return s.cfg.Listen
 }

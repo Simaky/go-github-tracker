@@ -1,19 +1,9 @@
 // Package storage owns the database handle and the mapping between rows and Go
 // structs. Business rules stay in the app layer.
 //
-// The connection is opened through Ent's SQL dialect driver. Once you add your
-// first schema under ent/schema and run `make ent-generate`, wrap this driver
-// in the generated *ent.Client to get typed queries plus auto-migration:
-//
-//	import "github.com/Simaky/go-github-tracker/backend/ent"
-//
-//	client := ent.NewClient(ent.Driver(s.Driver()))
-//	if err := client.Schema.Create(ctx); err != nil { // auto-migrate at startup
-//		return nil, fmt.Errorf("auto-migrate: %w", err)
-//	}
-//
-// Until the first schema exists there are no tables to migrate; the connection
-// is still live and the service reports healthy.
+// The connection is opened through Ent's SQL dialect driver and wrapped in the
+// generated *ent.Client, which gives typed queries plus auto-migration. The
+// schema is created/upgraded on startup via client.Schema.Create.
 package storage
 
 import (
@@ -25,24 +15,33 @@ import (
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
 	_ "github.com/jackc/pgx/v5/stdlib" // registers the "pgx" database/sql driver
+
+	"github.com/Simaky/go-github-tracker/backend/ent"
 )
 
 const reconnectPause = 2 * time.Second
 
-// Storage wraps the database connection.
+// Storage wraps the Ent client and the underlying SQL driver.
 type Storage struct {
-	drv *entsql.Driver
+	client *ent.Client
+	drv    *entsql.Driver
 }
 
-// New opens the database, retrying with a fixed back-off until it is reachable
-// so the service survives infrastructure that is still coming up.
+// New opens the database (retrying until reachable so the service survives
+// infrastructure that is still coming up), wraps it in the Ent client, and runs
+// auto-migration to create/upgrade the schema.
 func New(ctx context.Context, dsn string) (*Storage, error) {
 	drv := connect(dsn)
 
 	if err := drv.DB().PingContext(ctx); err != nil {
 		return nil, fmt.Errorf("pinging database: %w", err)
 	}
-	return &Storage{drv: drv}, nil
+
+	client := ent.NewClient(ent.Driver(drv))
+	if err := client.Schema.Create(ctx); err != nil {
+		return nil, fmt.Errorf("auto-migrate: %w", err)
+	}
+	return &Storage{client: client, drv: drv}, nil
 }
 
 func connect(dsn string) *entsql.Driver {
@@ -63,10 +62,6 @@ func connect(dsn string) *entsql.Driver {
 	}
 }
 
-// Driver exposes the underlying Ent SQL driver, for constructing a generated
-// *ent.Client once schemas exist.
-func (s *Storage) Driver() *entsql.Driver { return s.drv }
-
 // Ping verifies the database is reachable.
 func (s *Storage) Ping(ctx context.Context) error {
 	if err := s.drv.DB().PingContext(ctx); err != nil {
@@ -77,7 +72,7 @@ func (s *Storage) Ping(ctx context.Context) error {
 
 // Close releases the database connection.
 func (s *Storage) Close() error {
-	if err := s.drv.Close(); err != nil {
+	if err := s.client.Close(); err != nil {
 		return fmt.Errorf("closing database: %w", err)
 	}
 	return nil

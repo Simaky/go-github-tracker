@@ -32,6 +32,17 @@ func NewNotFoundError(what string) *DomainError {
 	return &DomainError{Code: CodeNotFound, Message: what + " not found"}
 }
 
+// NewConflictError reports a uniqueness/state conflict (e.g. a duplicate).
+func NewConflictError(msg string) *DomainError {
+	return &DomainError{Code: CodeConflict, Message: msg}
+}
+
+// NewUpstreamError reports a failure talking to an external dependency. The
+// client-safe message is kept generic; the cause is logged.
+func NewUpstreamError(msg string, cause error) *DomainError {
+	return &DomainError{Code: CodeUpstream, Message: msg, cause: cause}
+}
+
 // WrapInternal wraps an unexpected cause as an internal domain error.
 func WrapInternal(cause error) *DomainError {
 	return &DomainError{Code: CodeInternal, Message: "internal error", cause: cause}
