@@ -1,3 +1,5 @@
+// Package config loads service configuration from the environment, with
+// optional .env support, and exposes it as a typed Config.
 package config
 
 import (

@@ -16,8 +16,11 @@ test:
 lint:
 	golangci-lint run
 
+# Build from source with the local Go toolchain so the linter is built with a
+# Go >= the version this module targets (prebuilt releases lag and refuse to
+# lint a newer-targeted module).
 lint-install:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $$(go env GOPATH)/bin v2.5.0
+	go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.5.0
 
 # Regenerate the Ent typed client from ent/schema after editing a schema file.
 ent-generate:

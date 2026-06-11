@@ -1,3 +1,6 @@
+// Command go-github-tracker-ms is the service's composition root: it loads
+// config, builds the concrete collaborators (storage, GitHub client), wires
+// them into the app and server, and runs until shutdown.
 package main
 
 import (
