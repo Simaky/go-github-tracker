@@ -12,6 +12,8 @@ import (
 const (
 	CodeInvalidRequest = "INVALID_REQUEST"
 	CodeNotFound       = "NOT_FOUND"
+	CodeConflict       = "CONFLICT"
+	CodeUpstreamError  = "UPSTREAM_ERROR"
 	CodeInternalError  = "INTERNAL_ERROR"
 )
 
@@ -44,6 +46,16 @@ func NotFound(code, msg string) *APIError {
 	return &APIError{Status: http.StatusNotFound, Code: code, Message: msg}
 }
 
+// Conflict builds a 409 envelope.
+func Conflict(code, msg string) *APIError {
+	return &APIError{Status: http.StatusConflict, Code: code, Message: msg}
+}
+
+// Upstream builds a 502 envelope, retaining the cause for logging.
+func Upstream(code, msg string, cause error) *APIError {
+	return &APIError{Status: http.StatusBadGateway, Code: code, Message: msg, Cause: cause}
+}
+
 // InternalError builds a 500 envelope, retaining the cause for logging.
 func InternalError(cause error) *APIError {
 	return &APIError{Status: http.StatusInternalServerError, Code: CodeInternalError, Message: "internal error", Cause: cause}
@@ -73,6 +85,10 @@ func asAPIError(err error) *APIError {
 			return BadRequest(CodeInvalidRequest, domainErr.Message)
 		case app.CodeNotFound:
 			return NotFound(CodeNotFound, domainErr.Message)
+		case app.CodeConflict:
+			return Conflict(CodeConflict, domainErr.Message)
+		case app.CodeUpstream:
+			return Upstream(CodeUpstreamError, domainErr.Message, domainErr.Unwrap())
 		default:
 			return InternalError(err)
 		}

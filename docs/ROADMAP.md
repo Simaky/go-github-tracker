@@ -10,34 +10,34 @@ self-contained, reviewable slice. Check items off as they land.
 - [x] Frontend skeleton (Next.js + React + TS + Tailwind) — builds clean
 - [x] Config moved to `.env` (godotenv + env tags)
 
-## M1 — Data model
+## M1 — Data model ✅
 
-- [ ] `Repo` Ent schema in `backend/ent/schema/repo.go`: `owner, name, full_name (unique),
-      description, stars, language, html_url, notes, fetched_at` + Ent mixins for
+- [x] `Repo` Ent schema in `backend/ent/schema/repo.go`: `owner, name, full_name (unique),
+      description, stars, language, html_url, notes, fetched_at` + `TimeMixin` for
       `created_at` / `updated_at`
-- [ ] `make ent-generate` → typed client committed
-- [ ] Enable auto-migrate in `app/storage`: wrap the driver in `*ent.Client`, call
+- [x] `make ent-generate` → typed client committed
+- [x] Enable auto-migrate in `app/storage`: wrap the driver in `*ent.Client`, call
       `client.Schema.Create(ctx)` on startup
 
-## M2 — GitHub client
+## M2 — GitHub client ✅
 
-- [ ] `services/github/client.go`: `GET https://api.github.com/repos/{owner}/{name}`,
+- [x] `services/github/client.go`: `GET https://api.github.com/repos/{owner}/{name}`,
       map to a typed result, handle 404 / rate-limit, optional `GITHUB_TOKEN`
-- [ ] Map upstream errors to domain errors (not-found, upstream)
+- [x] Map upstream errors to domain errors (not-found, upstream)
 
-## M3 — Domain + storage
+## M3 — Domain + storage ✅
 
-- [ ] `app/storage` Repo methods: create, list (with `language` filter), get, update
-      notes, delete, upsert-on-refresh; map "not found" to a sentinel
-- [ ] `app/interfaces.go`: `Storager` + `GitHubClient` interfaces the app needs
-- [ ] `app/types.go`: `CreateRepoRequest`, `UpdateNotesRequest` + `Validate()`
-- [ ] `app/application.go`: `TrackRepo`, `ListRepos`, `GetRepo`, `UpdateNotes`,
+- [x] `app/storage` Repo methods: create, list (with `language` filter), get, update
+      notes, delete, refresh; translate "not found" / conflict to domain errors
+- [x] `app/interfaces.go`: `Storager` + `GitHubClient` interfaces the app needs
+- [x] `app/types.go`: `CreateRepoRequest`, `UpdateNotesRequest` + `Validate()`
+- [x] `app/application.go`: `TrackRepo`, `ListRepos`, `GetRepo`, `UpdateNotes`,
       `DeleteRepo`, `RefreshRepo` (reject duplicates on create)
 
-## M4 — HTTP API
+## M4 — HTTP API ✅
 
-- [ ] `server/handlers/repos.go`: handlers for the six endpoints
-- [ ] Wire routes under `/api/repos` in `server/http_server.go`
+- [x] `server/handlers/repos.go`: handlers for the six endpoints
+- [x] Wire routes under `/api/repos` in `server/http_server.go`
 - [ ] Manual smoke test against a running Postgres
 
 ## M5 — Frontend
@@ -50,7 +50,7 @@ self-contained, reviewable slice. Check items off as they land.
 
 ## M6 — Tests & polish
 
-- [ ] GitHub client test against an `httptest` mock server
-- [ ] One app/handler-level test (e.g. duplicate rejection or the language filter)
+- [x] GitHub client test against an `httptest` mock server
+- [x] App-level tests (track/refresh orchestration, duplicate rejection, validation)
 - [ ] Finalise README: architecture write-up + AI-tools specifics
 - [ ] Verify full stack via `make up`

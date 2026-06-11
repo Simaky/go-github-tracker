@@ -34,11 +34,16 @@ func (s *server) runHTTP(version string) error {
 	router.GET("/version", func(c *gin.Context) { c.String(http.StatusOK, version) })
 	router.Any("/debug/pprof/*profile", gin.WrapH(http.DefaultServeMux)) // pprof self-registers via main's blank import
 
-	// Versioned API. Register resource routes here as the domain grows:
-	//   v1 := router.Group("/v1")
-	//   v1.POST("/repos", h.CreateRepo)
-	//   v1.GET("/repos/:id", h.GetRepo)
-	_ = router.Group("/v1")
+	// Resource API, mounted under /api per the assignment.
+	api := router.Group("/api")
+	{
+		api.POST("/repos", h.CreateRepo)
+		api.GET("/repos", h.ListRepos)
+		api.GET("/repos/:id", h.GetRepo)
+		api.PATCH("/repos/:id", h.UpdateNotes)
+		api.POST("/repos/:id/refresh", h.RefreshRepo)
+		api.DELETE("/repos/:id", h.DeleteRepo)
+	}
 
 	httpSrv := &http.Server{
 		Addr:              s.addressOf(),

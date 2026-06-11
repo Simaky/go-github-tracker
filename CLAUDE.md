@@ -40,12 +40,15 @@ Place new backend code by concern — do not invent new top-level dirs:
 
 ## Build & verify
 
-Backend (this machine needs the toolchain env — Go 1.23 installed, `GOSUMDB=off`):
+Backend (`go.mod` pins the minimum Go; `GOTOOLCHAIN=auto` fetches it if needed):
 
 ```sh
-cd backend && GOTOOLCHAIN=go1.26.0 GOSUMDB=sum.golang.org go build ./...
-# the Makefile already exports these for `make run|test|lint`
+cd backend && go build ./...   # or: make run | test | lint
 ```
+
+> Note: if a machine still has `GOSUMDB=off` set globally *and* needs to
+> auto-download a newer toolchain, that download fails verification — either
+> install a recent Go or run with `GOSUMDB=sum.golang.org` for that command.
 
 After changing `ent/schema/`, regenerate: `cd backend && make ent-generate`.
 Frontend: `cd frontend && npm run build`.

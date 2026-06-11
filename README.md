@@ -11,9 +11,10 @@ docker-compose (+ PostgreSQL).
 
 ## Status
 
-Built incrementally (see commit history). The scaffold is in place; features are
-landing milestone by milestone — see **[docs/ROADMAP.md](docs/ROADMAP.md)** for the
-plan and current progress.
+Built incrementally (see commit history). The **backend API is complete** — the
+`Repo` model, GitHub client, domain layer, and all six `/api/repos` endpoints,
+with unit tests for the GitHub client and the app orchestration. The frontend is
+next — see **[docs/ROADMAP.md](docs/ROADMAP.md)** for the plan and progress.
 
 ---
 
@@ -62,7 +63,7 @@ the backend over HTTP only.
 
 ---
 
-## API (target)
+## API
 
 | Method | Path                      | Body / Query                | Description                                        |
 |--------|---------------------------|-----------------------------|----------------------------------------------------|
@@ -160,5 +161,9 @@ specifics as the implementation lands._
 
 ## Tests
 
-_To be added — a couple of meaningful tests (e.g. the GitHub client against a mock
-server, and a handler/app-level test)._
+Backend (`cd backend && make test`):
+
+- **GitHub client** (`services/github`) against an `httptest` mock server — success
+  mapping, 404 → not-found, rate-limit → upstream, auth-header handling.
+- **App orchestration** (`app`) with stubbed storage/GitHub — track, duplicate
+  rejection, validation short-circuits, and the refresh flow.
