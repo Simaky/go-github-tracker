@@ -10,17 +10,24 @@ import (
 	"github.com/Simaky/go-github-tracker/backend/consts"
 )
 
-const defaultListen = "0.0.0.0:12010"
+const defaultListen = ":12010"
 
 // Config is the typed view of everything the service reads from its environment.
 type Config struct {
 	Storage Storage
+	GitHub  GitHub
 	Listen  string `env:"GOGITHUBTRACKER_LISTEN"`
 }
 
 // Storage holds database connection settings.
 type Storage struct {
 	DSN string `env:"GOGITHUBTRACKER_DB_DSN"`
+}
+
+// GitHub holds settings for the GitHub API client.
+type GitHub struct {
+	// Token is optional; when set it raises the API rate limit.
+	Token string `env:"GITHUB_TOKEN"`
 }
 
 // LoadConfig resolves configuration from the environment:
