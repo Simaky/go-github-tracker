@@ -38,7 +38,8 @@ self-contained, reviewable slice. Check items off as they land.
 
 - [x] `server/handlers/repos.go`: handlers for the six endpoints
 - [x] Wire routes under `/api/repos` in `server/http_server.go`
-- [ ] Manual smoke test against a running Postgres
+- [x] Manual smoke test against a running Postgres (fixed Ent+pgx driver wiring:
+      open `sql.Open("pgx", …)` + `entsql.OpenDB`, not `entsql.Open("postgres", …)`)
 
 ## M5 — Frontend
 

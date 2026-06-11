@@ -8,6 +8,7 @@ package storage
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"time"
@@ -18,6 +19,11 @@ import (
 
 	"github.com/Simaky/go-github-tracker/backend/ent"
 )
+
+// driverName is the database/sql driver registered by pgx/v5/stdlib. Ent's
+// entsql.Open would instead look up a driver literally named "postgres", which
+// pgx does not register — so we open the *sql.DB ourselves and wrap it.
+const driverName = "pgx"
 
 const reconnectPause = 2 * time.Second
 
@@ -46,19 +52,19 @@ func New(ctx context.Context, dsn string) (*Storage, error) {
 
 func connect(dsn string) *entsql.Driver {
 	for {
-		drv, err := entsql.Open(dialect.Postgres, dsn)
+		db, err := sql.Open(driverName, dsn)
 		if err != nil {
 			log.Printf("db open: %s", err)
 			time.Sleep(reconnectPause)
 			continue
 		}
-		if err := drv.DB().Ping(); err != nil {
+		if err := db.Ping(); err != nil {
 			log.Printf("db ping: %s", err)
-			_ = drv.Close()
+			_ = db.Close()
 			time.Sleep(reconnectPause)
 			continue
 		}
-		return drv
+		return entsql.OpenDB(dialect.Postgres, db)
 	}
 }
 
