@@ -1,107 +1,15 @@
 # go-github-tracker
 
-A small full-stack app to **track GitHub repositories you care about**. Add a repo
-by `owner/name`, the backend fetches its metadata from the GitHub public API and
-stores it; you can list, filter, annotate with notes, refresh, and remove repos.
+Track GitHub repositories: add one by `owner/name`, the backend fetches its
+metadata from the GitHub public API and stores it; then list, filter, annotate
+with notes, refresh, and remove repos.
 
-Monorepo: a **Go** backend API and a **Next.js** frontend, run together with
-docker-compose (+ PostgreSQL).
-
----
-
-## Status
-
-Built incrementally (see commit history). The **backend API is complete** — the
-`Repo` model, GitHub client, domain layer, and all six `/api/repos` endpoints,
-with unit tests for the GitHub client and the app orchestration. The frontend is
-next — see **[docs/ROADMAP.md](docs/ROADMAP.md)** for the plan and progress.
-
----
-
-## Architecture
-
-```
-go-github-tracker/
-├── docker-compose.yml      # backend + frontend + postgres
-├── backend/                # Go API — go-template-ms layout
-│   ├── go-github-tracker-ms.go   # composition root: config → storage → app → server → run
-│   ├── app/                # domain layer (orchestrator, interfaces, types, errors)
-│   │   ├── config/         # env-based config (.env supported)
-│   │   └── storage/        # DB access via Ent over pgx
-│   ├── ent/                # Ent ORM: schema/ + generated client
-│   ├── services/           # outbound clients to external systems (GitHub) — one sub-pkg each
-│   └── server/             # Gin engine, handlers, middleware
-└── frontend/               # Next.js + React + TypeScript + Tailwind
-```
-
-**Backend** follows a deliberate layering (top imports down, never the reverse):
-
-```
-main → server (Gin/handlers) → app (domain) → app/storage + services (interfaces)
-```
-
-- The `app.App` orchestrator holds its collaborators as **interfaces it declares
-  itself**, so it is testable with stubs and never forms an import cycle. Concrete
-  types (the Ent-backed storage, the GitHub client) are constructed once in `main`.
-- **Persistence** is **Ent** over **PostgreSQL** (via the `pgx` driver). The schema
-  lives in `backend/ent/schema/`; Ent generates the typed client and runs
-  **auto-migration** on startup (`client.Schema.Create`).
-- **HTTP** is **Gin**. Handlers are thin translators (decode → validate → call the
-  app → translate error → write JSON); the client only ever sees a sanitised error
-  envelope. Routes are mounted under **`/api`** (per the assignment).
-- The **GitHub integration** lives in `services/github/` as a client over
-  `*http.Client`, calling `https://api.github.com/repos/{owner}/{name}`. An optional
-  `GITHUB_TOKEN` raises the rate limit when present.
-
-> The layout and conventions come from a personal `go-template-ms` standard
-> (consistent service shape across an estate). A couple of defaults were swapped
-> for this assignment's required stack — **Gin** (vs chi) and **Ent** (vs sqlx);
-> see [`backend/README.md`](backend/README.md) for the rationale.
-
-**Frontend** is a Next.js (App Router) app in TypeScript with Tailwind. It talks to
-the backend over HTTP only.
-
----
-
-## API
-
-| Method | Path                      | Body / Query                | Description                                        |
-|--------|---------------------------|-----------------------------|----------------------------------------------------|
-| POST   | `/api/repos`              | `{ "owner": "", "name": "" }` | Fetch from GitHub, persist, return record. 409 on duplicate. |
-| GET    | `/api/repos`              | `?language=Go` (optional)   | List tracked repos, optionally filtered by language. |
-| GET    | `/api/repos/:id`          | —                           | Return a single repo.                              |
-| PATCH  | `/api/repos/:id`          | `{ "notes": "" }`           | Update the user-editable notes.                    |
-| DELETE | `/api/repos/:id`          | —                           | Remove from the watchlist.                         |
-| POST   | `/api/repos/:id/refresh`  | —                           | Re-fetch from GitHub and update stored fields.     |
-
-**`Repo` fields:** `id, owner, name, full_name (unique), description, stars,
-language, html_url, notes, fetched_at, created_at, updated_at`.
-
-Operational endpoints: `GET /uptime`, `GET /version`.
-
----
-
-## Configuration
-
-All config is via environment variables. Copy the examples and adjust:
-
-```sh
-cp .env.example .env                 # stack (compose): Postgres + ports
-cp backend/.env.example backend/.env # backend (local run): DSN, listen, GitHub token
-```
-
-| Variable                  | Used by | Meaning                                              |
-|---------------------------|---------|------------------------------------------------------|
-| `GOGITHUBTRACKER_DB_DSN`  | backend | PostgreSQL DSN (**required**)                        |
-| `GOGITHUBTRACKER_LISTEN`  | backend | bind address (default `0.0.0.0:12010`)               |
-| `GITHUB_TOKEN`            | backend | optional GitHub token for higher rate limits         |
-| `POSTGRES_USER/PASSWORD/DB`, `*_PORT` | compose | database + host port mapping              |
-
----
+Monorepo — a **Go** backend API and a **Next.js** frontend, run together with
+Docker Compose (+ PostgreSQL).
 
 ## How to run
 
-### Docker Compose (whole stack)
+Needs Docker. From the repo root:
 
 ```sh
 cp .env.example .env
@@ -114,56 +22,75 @@ make down      # stop
 |-------------|------------------------|
 | Frontend    | http://localhost:3000  |
 | Backend API | http://localhost:12010 |
-| PostgreSQL  | localhost:5432         |
 
-### Locally (without Docker)
+The defaults in `.env.example` work as-is. To run a part on its own instead of
+the whole stack: `make backend-run` (needs a local Postgres + Go 1.26+, configured
+via `backend/.env`) or `make frontend-dev` (needs Node 22+).
 
-Backend (needs a running Postgres and Go 1.26+ — see the toolchain note in
-[`backend/README.md`](backend/README.md)):
+### API
 
-```sh
-cd backend && cp .env.example .env && make run
+| Method | Path                     | Body / Query                  |
+|--------|--------------------------|-------------------------------|
+| POST   | `/api/repos`             | `{ "owner": "", "name": "" }` |
+| GET    | `/api/repos`             | `?language=Go` (optional)     |
+| GET    | `/api/repos/:id`         | —                             |
+| PATCH  | `/api/repos/:id`         | `{ "notes": "" }`             |
+| POST   | `/api/repos/:id/refresh` | —                             |
+| DELETE | `/api/repos/:id`         | —                             |
+
+## Architectural choices
+
+```
+backend/   Go API — Gin (HTTP) + Ent (ORM) over PostgreSQL (pgx)
+frontend/  Next.js (App Router) + TypeScript + Tailwind
 ```
 
-Frontend (Node 22+):
+**Backend** is layered; imports only ever point down:
 
-```sh
-cd frontend && npm install && npm run dev
+```
+main → server (Gin / handlers) → app (domain) → app/storage + services
 ```
 
----
+- `app.App` orchestrates the domain and holds its collaborators as **interfaces
+  it declares itself** — so it is unit-testable with stubs and never forms an
+  import cycle. The concrete types (Ent-backed storage, GitHub client) are
+  constructed once in `main` and injected.
+- **Persistence:** Ent over PostgreSQL via the `pgx` driver. The schema lives in
+  `backend/ent/schema/`; Ent generates the typed client and auto-migrates on
+  startup.
+- **HTTP:** Gin. Handlers are thin translators (decode → validate → call the app
+  → map the error → write JSON); clients only ever see a sanitised error
+  envelope. Routes are mounted under `/api`.
+- **GitHub:** a small client in `services/github/` over `*http.Client`. An
+  optional `GITHUB_TOKEN` raises the rate limit.
 
-## Tech stack
+> The backend layout comes from a personal `go-template-ms` standard. Two
+> defaults were swapped for this assignment's required stack: **Gin** (vs chi)
+> and **Ent** (vs sqlx).
 
-- **Backend:** Go 1.26 (satisfies the 1.22+ requirement), Gin, Ent, PostgreSQL (pgx),
-  `caarlos0/env` + `godotenv` for config.
-- **Frontend:** Next.js 15, React 19, TypeScript, Tailwind CSS v4.
-- **Infra:** Docker Compose, PostgreSQL 16.
+**Frontend** — the browser talks only to Next.js. The initial list is fetched in
+a Server Component; every mutation goes through a **Server Action** that proxies
+to the backend over the internal network and calls `revalidatePath` so the page
+re-renders with fresh data. There are no direct browser → Go calls, so there is
+no CORS to manage. The UI is built on plain Tailwind (no component library).
 
----
+**Tests & CI:** the backend has unit tests for the GitHub client (against an
+`httptest` server) and the app orchestration (with stubbed collaborators).
+GitHub Actions run on each push: `backend-ci` (go test + golangci-lint) and
+`frontend-ci` (eslint + typecheck + build).
 
 ## AI tools used
 
-This project was built with **Claude Code** (Anthropic's CLI) as a pair-programming
-assistant, used to:
+Built with **Claude Code** (Anthropic's CLI) as a pair-programming assistant:
 
-- Scaffold the monorepo and the Go service against my personal `go-template-ms`
-  project-structure standard (a Claude Code plugin), keeping the layout consistent.
-- Generate boilerplate (config loading, error envelope, middleware, Dockerfiles,
-  compose) and the Ent schema / GitHub client / handlers.
-- Review structure and wiring as the work progressed.
+- Scaffolded the monorepo and the Go service from my personal `go-template-ms`
+  standard (packaged as a Claude Code plugin), keeping the layout consistent.
+- Generated boilerplate (config, error envelope, middleware, Dockerfiles,
+  compose, Ent schema, GitHub client, handlers) and the whole frontend (Tailwind
+  UI, Server Actions, dialogs/toasts).
+- Reviewed structure, wiring, and the diff as the work progressed — and found a
+  real bug along the way (Ent was opening the `postgres` sql driver instead of
+  the `pgx` one the binary registers).
 
 Every change was reviewed before staging; commits are made by hand in small,
-meaningful steps (see the commit history). _This section will be expanded with
-specifics as the implementation lands._
-
----
-
-## Tests
-
-Backend (`cd backend && make test`):
-
-- **GitHub client** (`services/github`) against an `httptest` mock server — success
-  mapping, 404 → not-found, rate-limit → upstream, auth-header handling.
-- **App orchestration** (`app`) with stubbed storage/GitHub — track, duplicate
-  rejection, validation short-circuits, and the refresh flow.
+meaningful steps (see the commit history).

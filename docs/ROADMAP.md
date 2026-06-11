@@ -41,17 +41,23 @@ self-contained, reviewable slice. Check items off as they land.
 - [x] Manual smoke test against a running Postgres (fixed Ent+pgx driver wiring:
       open `sql.Open("pgx", …)` + `entsql.OpenDB`, not `entsql.Open("postgres", …)`)
 
-## M5 — Frontend
+## M5 — Frontend ✅
 
-- [ ] API client (typed fetch wrappers) pointed at `API_BASE_URL`
-- [ ] Repo table: name, stars, language, description, GitHub link
-- [ ] Add-repo form (owner / name)
-- [ ] Edit notes (inline or modal)
-- [ ] Delete + per-row refresh actions
+Plain Tailwind v4 (no component library). The browser talks only to Next.js;
+Server Actions proxy to the backend over `API_BASE_URL`, so there is no CORS.
+
+- [x] API client (typed fetch wrappers) pointed at `API_BASE_URL` (`src/lib/api.ts`,
+      server-only) + Server Actions in `src/app/actions.ts` with `revalidatePath`
+- [x] Repo table: name, stars, language, description, GitHub link
+- [x] Add-repo form (owner / name) — modal dialog, parses `owner/name`
+- [x] Edit notes — modal dialog
+- [x] Delete (confirm dialog) + per-row refresh actions
+- [x] Toasts, empty state, search + language filter, stats summary
 
 ## M6 — Tests & polish
 
 - [x] GitHub client test against an `httptest` mock server
 - [x] App-level tests (track/refresh orchestration, duplicate rejection, validation)
-- [ ] Finalise README: architecture write-up + AI-tools specifics
-- [ ] Verify full stack via `make up`
+- [x] Single root README: how to run, architecture choices, AI tools
+- [x] `frontend-ci` workflow (eslint + typecheck + build) alongside `backend-ci`
+- [x] Verify full stack via `make up` (postgres healthy, SSR renders live data)
