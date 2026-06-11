@@ -1,9 +1,10 @@
 # go-github-tracker-ms
 
 The backend service for **go-github-tracker**, built to the `go-template-ms`
-standard. It is a bare skeleton: the full layered layout, the composition root,
-config-from-env, the error envelope, and graceful shutdown are all in
-place, with no domain entities or endpoints yet.
+standard. It exposes a REST API to track GitHub repositories: the `Repo` entity
+(Ent + PostgreSQL), the GitHub API client, the domain orchestrator, and the
+`/api/repos` handlers sit on top of the standard layered layout, composition
+root, config-from-env, error envelope, and graceful shutdown.
 
 ## Stack
 
@@ -24,22 +25,23 @@ server → run`.
 
 ## Go version
 
-Targets the latest Go (**1.26**), pinned via the `toolchain` directive in
-`go.mod`. If your machine has an older Go, the toolchain auto-downloads — but that
-download verifies against the checksum database, so if you have `GOSUMDB=off` set
-it will refuse. The `Makefile` re-enables `GOSUMDB=sum.golang.org` for its targets;
-for raw `go` commands either set that env var once or install Go 1.26+.
+Targets Go **1.26**, set by the `go` directive in `go.mod`. With the default
+`GOTOOLCHAIN=auto`, an older local Go auto-downloads the right toolchain. (Edge
+case: if you've globally set `GOSUMDB=off`, that download fails its checksum
+verification — install a recent Go, or prefix the command with
+`GOSUMDB=sum.golang.org`.)
 
 ## Layout
 
 ```
 go-github-tracker-ms.go   # package main — entry point, wiring only
 app/                      # domain layer (App orchestrator, interfaces, types, errors)
-  config/                 # Config + LoadConfig (env / JSON file)
-  storage/                # DB connection via Ent's SQL driver over pgx
-ent/                      # Ent ORM: generate.go + schema/ (add entities here)
-server/                   # Gin engine, handlers, middleware, graceful shutdown
-services/                 # outbound clients to external systems (empty)
+  config/                 # Config + LoadConfig (env / .env)
+  storage/                # Ent-backed Repo persistence over pgx (storage.go, repo.go)
+ent/                      # Ent ORM: schema/repo.go + generated typed client
+server/                   # Gin engine, handlers (repos.go), middleware, graceful shutdown
+services/                 # outbound clients to external systems
+  github/                 # GitHub REST API client
 consts/                   # ServiceName
 ```
 
@@ -50,10 +52,11 @@ if present, then env vars are decoded into the typed `Config`, then defaults are
 applied and validated. **Real exported env vars always win** over `.env`, and a
 missing `.env` is fine (in Docker, compose injects the variables directly).
 
-| Variable                    | Meaning                          | Example                                                   |
-|-----------------------------|----------------------------------|-----------------------------------------------------------|
-| `GOGITHUBTRACKER_DB_DSN`    | PostgreSQL DSN (**required**)    | `postgres://app:app@localhost:5432/app?sslmode=disable`   |
-| `GOGITHUBTRACKER_LISTEN`    | bind address (default `:12010`)  | `0.0.0.0:12010`                                           |
+| Variable                    | Meaning                              | Example                                                   |
+|-----------------------------|--------------------------------------|-----------------------------------------------------------|
+| `GOGITHUBTRACKER_DB_DSN`    | PostgreSQL DSN (**required**)        | `postgres://app:app@localhost:5432/app?sslmode=disable`   |
+| `GOGITHUBTRACKER_LISTEN`    | bind address (default `:12010`)      | `0.0.0.0:12010`                                           |
+| `GITHUB_TOKEN`              | GitHub API token (optional)          | `ghp_…` (raises the API rate limit)                       |
 
 For local (non-Docker) runs, copy the example env file and start the service —
 `.env` is loaded automatically:
@@ -67,23 +70,25 @@ make run
 
 ## Endpoints
 
-- `GET /uptime` — plain-text liveness.
-- `GET /version` — build version string.
-- `GET /debug/pprof/*` — pprof.
-- `/v1/...` — versioned API; resource routes are added here as the domain grows.
+Resource API (mounted under `/api`):
 
-## Adding your first entity (and enabling auto-migrate)
+| Method | Path                      | Description                                          |
+|--------|---------------------------|------------------------------------------------------|
+| POST   | `/api/repos`              | Fetch from GitHub, persist, return record (409 dup). |
+| GET    | `/api/repos`              | List tracked repos (`?language=` filter).            |
+| GET    | `/api/repos/:id`          | Return a single repo.                                |
+| PATCH  | `/api/repos/:id`          | Update the user-editable notes.                      |
+| POST   | `/api/repos/:id/refresh`  | Re-fetch from GitHub and update stored fields.       |
+| DELETE | `/api/repos/:id`          | Remove from the watchlist.                           |
 
-Ent generates its typed client from schemas, so there is nothing to migrate until
-you add one:
+Operational: `GET /uptime` (liveness), `GET /version`, `GET /debug/pprof/*`.
 
-1. Create `ent/schema/<entity>.go` declaring an `ent.Schema` type.
-2. `make ent-generate` — regenerates the typed client into `ent/`.
-3. In `app/storage/storage.go`, wrap the driver in the generated client and call
-   `client.Schema.Create(ctx)` in `New` (the exact snippet is in that file's doc
-   comment). This runs auto-migration on startup.
-4. Add `Storager` methods in `app/interfaces.go`, implement them in
-   `app/storage`, and expose handlers under `/v1`.
+## Schema changes
+
+The `Repo` entity lives in `ent/schema/repo.go`; the typed client under `ent/` is
+generated from it and committed. After editing the schema, regenerate with
+`make ent-generate`. Auto-migration (`client.Schema.Create`) runs on startup, so
+the table is created/upgraded automatically.
 
 ## Make targets
 
