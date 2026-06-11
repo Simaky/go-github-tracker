@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+
 import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-  title: "go-github-tracker",
-  description: "Track GitHub activity",
+  title: "GitHub Repository Tracker",
+  description: "Track GitHub repositories — stars, languages, and your own notes.",
 };
 
 export default function RootLayout({
@@ -11,8 +13,8 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased">
-        {children}
+      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
