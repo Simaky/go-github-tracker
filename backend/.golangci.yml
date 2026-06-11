@@ -1,0 +1,47 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+# A pragmatic, production-grade set: catch real problems — unchecked errors,
+# resource leaks, error-wrapping mistakes, suspicious constructs, security
+# issues — without the stylistic noise of revive's enable-all-rules, wrapcheck,
+# mnd, and friends.
+linters:
+  enable:
+    - bodyclose # HTTP/SQL response bodies are closed
+    - errorlint # correct error wrapping and comparison
+    - errname # error values/types are named conventionally
+    - gocritic # broad correctness + style checks
+    - gosec # security issues
+    - misspell # typos in comments and strings
+    - revive # general Go style (default rule set)
+    - rowserrcheck # sql.Rows.Err() is checked
+    - sqlclosecheck # sql resources are closed
+    - unparam # unused function parameters
+  # errcheck, govet, ineffassign, staticcheck, and unused are on by default.
+  settings:
+    gosec:
+      excludes:
+        - G108 # pprof is mounted on purpose; see server/http_server.go
+  exclusions:
+    rules:
+      # Tests favour readability over some production-grade rules.
+      - path: _test\.go
+        linters:
+          - gosec
+          - unparam
+      # Intentional pattern: unexported types with an exported constructor
+      # (e.g. server.New → *server). Callers use it via its exported methods.
+      - linters:
+          - revive
+        text: "unexported-return"
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/Simaky/go-github-tracker/backend

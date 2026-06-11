@@ -1,0 +1,44 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    environment:
+      GOGITHUBTRACKER_DB_DSN: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+      GOGITHUBTRACKER_LISTEN: "0.0.0.0:12010"
+    ports:
+      - "${BACKEND_PORT}:12010"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      # Server-side fetches inside the compose network reach the backend by service name.
+      API_BASE_URL: "http://backend:12010"
+      # Browser-side calls (if you add any) use the host-published port.
+      NEXT_PUBLIC_API_BASE_URL: "http://localhost:${BACKEND_PORT}"
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data:
