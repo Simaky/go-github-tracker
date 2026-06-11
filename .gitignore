@@ -1,0 +1,12 @@
+.env
+.idea/
+.vscode/
+.DS_Store
+
+# frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# backend binary
+backend/go-github-tracker-ms

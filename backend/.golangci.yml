@@ -1,0 +1,35 @@
+version: "2"
+run:
+  timeout: 5m
+linters:
+  enable:
+    - bodyclose
+    - errcheck
+    - errorlint
+    - errname
+    - exhaustive
+    - gocritic
+    - gosec
+    - ireturn
+    - misspell
+    - mnd
+    - nilnil
+    - paralleltest
+    - revive
+    - rowserrcheck
+    - sqlclosecheck
+    - staticcheck
+    - unparam
+    - unused
+    - wrapcheck
+  settings:
+    cyclop:
+      max-complexity: 14
+    funlen:
+      lines: 60
+      statements: 40
+    revive:
+      enable-all-rules: true
+    goimports:
+      local-prefixes:
+        - github.com/Simaky/go-github-tracker/backend
