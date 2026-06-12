@@ -43,23 +43,10 @@ func New(httpClient *http.Client, token string, opts ...Option) *Client {
 	return c
 }
 
-// repoResponse is the subset of GitHub's repository payload we read.
-type repoResponse struct {
-	Name        string `json:"name"`
-	FullName    string `json:"full_name"`
-	Description string `json:"description"`
-	Stars       int    `json:"stargazers_count"`
-	Language    string `json:"language"`
-	HTMLURL     string `json:"html_url"`
-	Owner       struct {
-		Login string `json:"login"`
-	} `json:"owner"`
-}
-
 // FetchRepo returns metadata for owner/name from GET /repos/{owner}/{name}.
 // It reports ErrNotFound on 404 and ErrRateLimited on 403/429; other failures
 // are wrapped plain errors.
-func (c *Client) FetchRepo(ctx context.Context, owner, name string) (*Repo, error) {
+func (c *Client) FetchRepo(ctx context.Context, owner, name string) (*RepoResponse, error) {
 	url := fmt.Sprintf("%s/repos/%s/%s", c.baseURL, owner, name)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -88,18 +75,10 @@ func (c *Client) FetchRepo(ctx context.Context, owner, name string) (*Repo, erro
 		return nil, fmt.Errorf("github: unexpected status %d", resp.StatusCode)
 	}
 
-	var body repoResponse
+	var body RepoResponse
 	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
 		return nil, fmt.Errorf("decoding github response: %w", err)
 	}
 
-	return &Repo{
-		Owner:       body.Owner.Login,
-		Name:        body.Name,
-		FullName:    body.FullName,
-		Description: body.Description,
-		Stars:       body.Stars,
-		Language:    body.Language,
-		HTMLURL:     body.HTMLURL,
-	}, nil
+	return &body, nil
 }

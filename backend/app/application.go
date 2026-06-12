@@ -83,9 +83,9 @@ func (a *App) RefreshRepo(ctx context.Context, id int) (*Repo, error) {
 
 // metadataFromGitHub maps the github service's type into the app's storage
 // contract.
-func metadataFromGitHub(r *github.Repo) RepoMetadata {
+func metadataFromGitHub(r *github.RepoResponse) RepoMetadata {
 	return RepoMetadata{
-		Owner:       r.Owner,
+		Owner:       r.Owner.Login,
 		Name:        r.Name,
 		FullName:    r.FullName,
 		Description: r.Description,

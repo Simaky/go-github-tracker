@@ -24,5 +24,5 @@ type Storager interface {
 // in services/github satisfies it. It returns the service's own *github.Repo;
 // the app maps that (and the service's sentinel errors) into its domain.
 type GitHubClient interface {
-	FetchRepo(ctx context.Context, owner, name string) (*github.Repo, error)
+	FetchRepo(ctx context.Context, owner, name string) (*github.RepoResponse, error)
 }
