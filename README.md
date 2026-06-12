@@ -1,5 +1,7 @@
 # go-github-tracker
 
+<img width="1381" height="902" alt="image" src="https://github.com/user-attachments/assets/225ac500-b7d6-485f-85fa-486d083ac882" />
+
 Track GitHub repositories: add one by `owner/name`, the backend fetches its
 metadata from the GitHub public API and stores it; then list, filter, annotate
 with notes, refresh, and remove repos.
