@@ -24,6 +24,16 @@ func (h *Handlers) CreateRepo(c *gin.Context) {
 	h.writeJSON(c, http.StatusCreated, repo)
 }
 
+// TotalMetrics handles GET /api/metrics.
+func (h *Handlers) TotalMetrics(c *gin.Context) {
+	metrics, err := h.app.TotalMetrics(c.Request.Context())
+	if err != nil {
+		h.writeError(c, err)
+		return
+	}
+	h.writeJSON(c, http.StatusOK, metrics)
+}
+
 // ListRepos handles GET /api/repos, optionally filtered by ?language=.
 func (h *Handlers) ListRepos(c *gin.Context) {
 	repos, err := h.app.ListRepos(c.Request.Context(), c.Query("language"))

@@ -12,6 +12,7 @@ type (
 		Language    string `json:"language"`
 		HTMLURL     string `json:"html_url"`
 		Owner       Owner  `json:"owner"`
+		ForksCount  int    `json:"forks_count"`
 	}
 
 	// Owner is the repository's owner as returned by GitHub; only the login is read.

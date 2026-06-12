@@ -23,7 +23,12 @@ func (s *stubStore) UpdateNotes(context.Context, int, string) (*app.Repo, error)
 func (s *stubStore) RefreshRepo(context.Context, int, app.RepoMetadata) (*app.Repo, error) {
 	return nil, nil
 }
-func (s *stubStore) DeleteRepo(context.Context, int) error { return nil }
+func (s *stubStore) DeleteRepo(context.Context, int) error   { return nil }
+func (s *stubStore) CountRepos(context.Context) (int, error) { return 0, nil }
+func (s *stubStore) TotalStars(context.Context) (int, error) { return 0, nil }
+func (s *stubStore) MostUsedLanguage(context.Context) (string, int, error) {
+	return "", 0, nil
+}
 
 // stubGitHub is a configurable GitHubClient.
 type stubGitHub struct {

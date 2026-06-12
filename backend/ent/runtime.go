@@ -54,4 +54,10 @@ func init() {
 	repoDescNotes := repoFields[7].Descriptor()
 	// repo.DefaultNotes holds the default value on creation for the notes field.
 	repo.DefaultNotes = repoDescNotes.Default.(string)
+	// repoDescForksCount is the schema descriptor for forks_count field.
+	repoDescForksCount := repoFields[9].Descriptor()
+	// repo.DefaultForksCount holds the default value on creation for the forks_count field.
+	repo.DefaultForksCount = repoDescForksCount.Default.(int)
+	// repo.ForksCountValidator is a validator for the "forks_count" field. It is called by the builders before save.
+	repo.ForksCountValidator = repoDescForksCount.Validators[0].(func(int) error)
 }

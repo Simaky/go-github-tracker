@@ -18,6 +18,9 @@ type Storager interface {
 	UpdateNotes(ctx context.Context, id int, notes string) (*Repo, error)
 	RefreshRepo(ctx context.Context, id int, m RepoMetadata) (*Repo, error)
 	DeleteRepo(ctx context.Context, id int) error
+	CountRepos(ctx context.Context) (int, error)
+	TotalStars(ctx context.Context) (int, error)
+	MostUsedLanguage(ctx context.Context) (string, int, error)
 }
 
 // GitHubClient is what the app needs from the GitHub API. The concrete client

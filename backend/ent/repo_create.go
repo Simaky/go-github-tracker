@@ -134,6 +134,20 @@ func (_c *RepoCreate) SetFetchedAt(v time.Time) *RepoCreate {
 	return _c
 }
 
+// SetForksCount sets the "forks_count" field.
+func (_c *RepoCreate) SetForksCount(v int) *RepoCreate {
+	_c.mutation.SetForksCount(v)
+	return _c
+}
+
+// SetNillableForksCount sets the "forks_count" field if the given value is not nil.
+func (_c *RepoCreate) SetNillableForksCount(v *int) *RepoCreate {
+	if v != nil {
+		_c.SetForksCount(*v)
+	}
+	return _c
+}
+
 // Mutation returns the RepoMutation object of the builder.
 func (_c *RepoCreate) Mutation() *RepoMutation {
 	return _c.mutation
@@ -184,6 +198,10 @@ func (_c *RepoCreate) defaults() {
 	if _, ok := _c.mutation.Notes(); !ok {
 		v := repo.DefaultNotes
 		_c.mutation.SetNotes(v)
+	}
+	if _, ok := _c.mutation.ForksCount(); !ok {
+		v := repo.DefaultForksCount
+		_c.mutation.SetForksCount(v)
 	}
 }
 
@@ -237,6 +255,14 @@ func (_c *RepoCreate) check() error {
 	}
 	if _, ok := _c.mutation.FetchedAt(); !ok {
 		return &ValidationError{Name: "fetched_at", err: errors.New(`ent: missing required field "Repo.fetched_at"`)}
+	}
+	if _, ok := _c.mutation.ForksCount(); !ok {
+		return &ValidationError{Name: "forks_count", err: errors.New(`ent: missing required field "Repo.forks_count"`)}
+	}
+	if v, ok := _c.mutation.ForksCount(); ok {
+		if err := repo.ForksCountValidator(v); err != nil {
+			return &ValidationError{Name: "forks_count", err: fmt.Errorf(`ent: validator failed for field "Repo.forks_count": %w`, err)}
+		}
 	}
 	return nil
 }
@@ -307,6 +333,10 @@ func (_c *RepoCreate) createSpec() (*Repo, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.FetchedAt(); ok {
 		_spec.SetField(repo.FieldFetchedAt, field.TypeTime, value)
 		_node.FetchedAt = value
+	}
+	if value, ok := _c.mutation.ForksCount(); ok {
+		_spec.SetField(repo.FieldForksCount, field.TypeInt, value)
+		_node.ForksCount = value
 	}
 	return _node, _spec
 }

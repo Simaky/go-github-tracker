@@ -40,6 +40,7 @@ func (s *server) runHTTP(version string) error {
 		api.POST("/repos", h.CreateRepo)
 		api.GET("/repos", h.ListRepos)
 		api.GET("/repos/:id", h.GetRepo)
+		api.GET("/metrics", h.TotalMetrics)
 		api.PATCH("/repos/:id", h.UpdateNotes)
 		api.POST("/repos/:id/refresh", h.RefreshRepo)
 		api.DELETE("/repos/:id", h.DeleteRepo)

@@ -30,25 +30,27 @@ const (
 // RepoMutation represents an operation that mutates the Repo nodes in the graph.
 type RepoMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *int
-	created_at    *time.Time
-	updated_at    *time.Time
-	owner         *string
-	name          *string
-	full_name     *string
-	description   *string
-	stars         *int
-	addstars      *int
-	language      *string
-	html_url      *string
-	notes         *string
-	fetched_at    *time.Time
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Repo, error)
-	predicates    []predicate.Repo
+	op             Op
+	typ            string
+	id             *int
+	created_at     *time.Time
+	updated_at     *time.Time
+	owner          *string
+	name           *string
+	full_name      *string
+	description    *string
+	stars          *int
+	addstars       *int
+	language       *string
+	html_url       *string
+	notes          *string
+	fetched_at     *time.Time
+	forks_count    *int
+	addforks_count *int
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*Repo, error)
+	predicates     []predicate.Repo
 }
 
 var _ ent.Mutation = (*RepoMutation)(nil)
@@ -604,6 +606,62 @@ func (m *RepoMutation) ResetFetchedAt() {
 	m.fetched_at = nil
 }
 
+// SetForksCount sets the "forks_count" field.
+func (m *RepoMutation) SetForksCount(i int) {
+	m.forks_count = &i
+	m.addforks_count = nil
+}
+
+// ForksCount returns the value of the "forks_count" field in the mutation.
+func (m *RepoMutation) ForksCount() (r int, exists bool) {
+	v := m.forks_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldForksCount returns the old "forks_count" field's value of the Repo entity.
+// If the Repo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RepoMutation) OldForksCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldForksCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldForksCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldForksCount: %w", err)
+	}
+	return oldValue.ForksCount, nil
+}
+
+// AddForksCount adds i to the "forks_count" field.
+func (m *RepoMutation) AddForksCount(i int) {
+	if m.addforks_count != nil {
+		*m.addforks_count += i
+	} else {
+		m.addforks_count = &i
+	}
+}
+
+// AddedForksCount returns the value that was added to the "forks_count" field in this mutation.
+func (m *RepoMutation) AddedForksCount() (r int, exists bool) {
+	v := m.addforks_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetForksCount resets all changes to the "forks_count" field.
+func (m *RepoMutation) ResetForksCount() {
+	m.forks_count = nil
+	m.addforks_count = nil
+}
+
 // Where appends a list predicates to the RepoMutation builder.
 func (m *RepoMutation) Where(ps ...predicate.Repo) {
 	m.predicates = append(m.predicates, ps...)
@@ -638,7 +696,7 @@ func (m *RepoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RepoMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 12)
 	if m.created_at != nil {
 		fields = append(fields, repo.FieldCreatedAt)
 	}
@@ -672,6 +730,9 @@ func (m *RepoMutation) Fields() []string {
 	if m.fetched_at != nil {
 		fields = append(fields, repo.FieldFetchedAt)
 	}
+	if m.forks_count != nil {
+		fields = append(fields, repo.FieldForksCount)
+	}
 	return fields
 }
 
@@ -702,6 +763,8 @@ func (m *RepoMutation) Field(name string) (ent.Value, bool) {
 		return m.Notes()
 	case repo.FieldFetchedAt:
 		return m.FetchedAt()
+	case repo.FieldForksCount:
+		return m.ForksCount()
 	}
 	return nil, false
 }
@@ -733,6 +796,8 @@ func (m *RepoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldNotes(ctx)
 	case repo.FieldFetchedAt:
 		return m.OldFetchedAt(ctx)
+	case repo.FieldForksCount:
+		return m.OldForksCount(ctx)
 	}
 	return nil, fmt.Errorf("unknown Repo field %s", name)
 }
@@ -819,6 +884,13 @@ func (m *RepoMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFetchedAt(v)
 		return nil
+	case repo.FieldForksCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetForksCount(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Repo field %s", name)
 }
@@ -830,6 +902,9 @@ func (m *RepoMutation) AddedFields() []string {
 	if m.addstars != nil {
 		fields = append(fields, repo.FieldStars)
 	}
+	if m.addforks_count != nil {
+		fields = append(fields, repo.FieldForksCount)
+	}
 	return fields
 }
 
@@ -840,6 +915,8 @@ func (m *RepoMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
 	case repo.FieldStars:
 		return m.AddedStars()
+	case repo.FieldForksCount:
+		return m.AddedForksCount()
 	}
 	return nil, false
 }
@@ -855,6 +932,13 @@ func (m *RepoMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddStars(v)
+		return nil
+	case repo.FieldForksCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddForksCount(v)
 		return nil
 	}
 	return fmt.Errorf("unknown Repo numeric field %s", name)
@@ -936,6 +1020,9 @@ func (m *RepoMutation) ResetField(name string) error {
 		return nil
 	case repo.FieldFetchedAt:
 		m.ResetFetchedAt()
+		return nil
+	case repo.FieldForksCount:
+		m.ResetForksCount()
 		return nil
 	}
 	return fmt.Errorf("unknown Repo field %s", name)

@@ -185,6 +185,27 @@ func (_u *RepoUpdate) SetNillableFetchedAt(v *time.Time) *RepoUpdate {
 	return _u
 }
 
+// SetForksCount sets the "forks_count" field.
+func (_u *RepoUpdate) SetForksCount(v int) *RepoUpdate {
+	_u.mutation.ResetForksCount()
+	_u.mutation.SetForksCount(v)
+	return _u
+}
+
+// SetNillableForksCount sets the "forks_count" field if the given value is not nil.
+func (_u *RepoUpdate) SetNillableForksCount(v *int) *RepoUpdate {
+	if v != nil {
+		_u.SetForksCount(*v)
+	}
+	return _u
+}
+
+// AddForksCount adds value to the "forks_count" field.
+func (_u *RepoUpdate) AddForksCount(v int) *RepoUpdate {
+	_u.mutation.AddForksCount(v)
+	return _u
+}
+
 // Mutation returns the RepoMutation object of the builder.
 func (_u *RepoUpdate) Mutation() *RepoMutation {
 	return _u.mutation
@@ -253,6 +274,11 @@ func (_u *RepoUpdate) check() error {
 			return &ValidationError{Name: "html_url", err: fmt.Errorf(`ent: validator failed for field "Repo.html_url": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ForksCount(); ok {
+		if err := repo.ForksCountValidator(v); err != nil {
+			return &ValidationError{Name: "forks_count", err: fmt.Errorf(`ent: validator failed for field "Repo.forks_count": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -309,6 +335,12 @@ func (_u *RepoUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.FetchedAt(); ok {
 		_spec.SetField(repo.FieldFetchedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.ForksCount(); ok {
+		_spec.SetField(repo.FieldForksCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedForksCount(); ok {
+		_spec.AddField(repo.FieldForksCount, field.TypeInt, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -487,6 +519,27 @@ func (_u *RepoUpdateOne) SetNillableFetchedAt(v *time.Time) *RepoUpdateOne {
 	return _u
 }
 
+// SetForksCount sets the "forks_count" field.
+func (_u *RepoUpdateOne) SetForksCount(v int) *RepoUpdateOne {
+	_u.mutation.ResetForksCount()
+	_u.mutation.SetForksCount(v)
+	return _u
+}
+
+// SetNillableForksCount sets the "forks_count" field if the given value is not nil.
+func (_u *RepoUpdateOne) SetNillableForksCount(v *int) *RepoUpdateOne {
+	if v != nil {
+		_u.SetForksCount(*v)
+	}
+	return _u
+}
+
+// AddForksCount adds value to the "forks_count" field.
+func (_u *RepoUpdateOne) AddForksCount(v int) *RepoUpdateOne {
+	_u.mutation.AddForksCount(v)
+	return _u
+}
+
 // Mutation returns the RepoMutation object of the builder.
 func (_u *RepoUpdateOne) Mutation() *RepoMutation {
 	return _u.mutation
@@ -568,6 +621,11 @@ func (_u *RepoUpdateOne) check() error {
 			return &ValidationError{Name: "html_url", err: fmt.Errorf(`ent: validator failed for field "Repo.html_url": %w`, err)}
 		}
 	}
+	if v, ok := _u.mutation.ForksCount(); ok {
+		if err := repo.ForksCountValidator(v); err != nil {
+			return &ValidationError{Name: "forks_count", err: fmt.Errorf(`ent: validator failed for field "Repo.forks_count": %w`, err)}
+		}
+	}
 	return nil
 }
 
@@ -641,6 +699,12 @@ func (_u *RepoUpdateOne) sqlSave(ctx context.Context) (_node *Repo, err error) {
 	}
 	if value, ok := _u.mutation.FetchedAt(); ok {
 		_spec.SetField(repo.FieldFetchedAt, field.TypeTime, value)
+	}
+	if value, ok := _u.mutation.ForksCount(); ok {
+		_spec.SetField(repo.FieldForksCount, field.TypeInt, value)
+	}
+	if value, ok := _u.mutation.AddedForksCount(); ok {
+		_spec.AddField(repo.FieldForksCount, field.TypeInt, value)
 	}
 	_node = &Repo{config: _u.config}
 	_spec.Assign = _node.assignValues

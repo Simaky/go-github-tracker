@@ -50,6 +50,7 @@ func (Repo) Fields() []ent.Field {
 		field.String("notes").Optional().Default(""),
 		// fetched_at records when we last pulled metadata from GitHub.
 		field.Time("fetched_at"),
+		field.Int("forks_count").NonNegative().Default(0),
 	}
 }
 

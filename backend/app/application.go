@@ -23,6 +23,31 @@ func New(store Storager, github GitHubClient) *App {
 	return &App{store: store, github: github}
 }
 
+// TotalMetrics returns aggregate stats across all tracked repos: how many are
+// tracked, their combined star count, and the most-used language.
+func (a *App) TotalMetrics(ctx context.Context) (TotalMetrics, error) {
+	numRepos, err := a.store.CountRepos(ctx)
+	if err != nil {
+		return TotalMetrics{}, fmt.Errorf("count repos: %w", err)
+	}
+
+	totalStars, err := a.store.TotalStars(ctx)
+	if err != nil {
+		return TotalMetrics{}, fmt.Errorf("total stars: %w", err)
+	}
+
+	mostUsedLanguage, _, err := a.store.MostUsedLanguage(ctx)
+	if err != nil {
+		return TotalMetrics{}, fmt.Errorf("most used language: %w", err)
+	}
+
+	return TotalMetrics{
+		NumRepos:         numRepos,
+		TotalStars:       totalStars,
+		MostUsedLanguage: mostUsedLanguage,
+	}, nil
+}
+
 // Health reports whether the service's backing dependencies are reachable.
 func (a *App) Health(ctx context.Context) error {
 	if err := a.store.Ping(ctx); err != nil {
@@ -92,6 +117,7 @@ func metadataFromGitHub(r *github.RepoResponse) RepoMetadata {
 		Stars:       r.Stars,
 		Language:    r.Language,
 		HTMLURL:     r.HTMLURL,
+		ForksCount:  r.ForksCount,
 	}
 }
 

@@ -35,6 +35,8 @@ const (
 	FieldNotes = "notes"
 	// FieldFetchedAt holds the string denoting the fetched_at field in the database.
 	FieldFetchedAt = "fetched_at"
+	// FieldForksCount holds the string denoting the forks_count field in the database.
+	FieldForksCount = "forks_count"
 	// Table holds the table name of the repo in the database.
 	Table = "repos"
 )
@@ -53,6 +55,7 @@ var Columns = []string{
 	FieldHTMLURL,
 	FieldNotes,
 	FieldFetchedAt,
+	FieldForksCount,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -86,6 +89,10 @@ var (
 	HTMLURLValidator func(string) error
 	// DefaultNotes holds the default value on creation for the "notes" field.
 	DefaultNotes string
+	// DefaultForksCount holds the default value on creation for the "forks_count" field.
+	DefaultForksCount int
+	// ForksCountValidator is a validator for the "forks_count" field. It is called by the builders before save.
+	ForksCountValidator func(int) error
 )
 
 // OrderOption defines the ordering options for the Repo queries.
@@ -149,4 +156,9 @@ func ByNotes(opts ...sql.OrderTermOption) OrderOption {
 // ByFetchedAt orders the results by the fetched_at field.
 func ByFetchedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFetchedAt, opts...).ToFunc()
+}
+
+// ByForksCount orders the results by the forks_count field.
+func ByForksCount(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldForksCount, opts...).ToFunc()
 }

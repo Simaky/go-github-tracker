@@ -18,6 +18,7 @@ func toAppRepo(e *ent.Repo) *app.Repo {
 		Language:    e.Language,
 		HTMLURL:     e.HTMLURL,
 		Notes:       e.Notes,
+		ForksCount:  e.ForksCount,
 		FetchedAt:   e.FetchedAt,
 		CreatedAt:   e.CreatedAt,
 		UpdatedAt:   e.UpdatedAt,

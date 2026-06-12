@@ -22,6 +22,7 @@ var (
 		{Name: "html_url", Type: field.TypeString},
 		{Name: "notes", Type: field.TypeString, Nullable: true, Default: ""},
 		{Name: "fetched_at", Type: field.TypeTime},
+		{Name: "forks_count", Type: field.TypeInt, Default: 0},
 	}
 	// ReposTable holds the schema information for the "repos" table.
 	ReposTable = &schema.Table{

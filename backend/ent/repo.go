@@ -38,7 +38,9 @@ type Repo struct {
 	// Notes holds the value of the "notes" field.
 	Notes string `json:"notes,omitempty"`
 	// FetchedAt holds the value of the "fetched_at" field.
-	FetchedAt    time.Time `json:"fetched_at,omitempty"`
+	FetchedAt time.Time `json:"fetched_at,omitempty"`
+	// ForksCount holds the value of the "forks_count" field.
+	ForksCount   int `json:"forks_count,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -47,7 +49,7 @@ func (*Repo) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case repo.FieldID, repo.FieldStars:
+		case repo.FieldID, repo.FieldStars, repo.FieldForksCount:
 			values[i] = new(sql.NullInt64)
 		case repo.FieldOwner, repo.FieldName, repo.FieldFullName, repo.FieldDescription, repo.FieldLanguage, repo.FieldHTMLURL, repo.FieldNotes:
 			values[i] = new(sql.NullString)
@@ -140,6 +142,12 @@ func (_m *Repo) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.FetchedAt = value.Time
 			}
+		case repo.FieldForksCount:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field forks_count", values[i])
+			} else if value.Valid {
+				_m.ForksCount = int(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -208,6 +216,9 @@ func (_m *Repo) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("fetched_at=")
 	builder.WriteString(_m.FetchedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("forks_count=")
+	builder.WriteString(fmt.Sprintf("%v", _m.ForksCount))
 	builder.WriteByte(')')
 	return builder.String()
 }

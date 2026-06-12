@@ -6,8 +6,13 @@ const compactNumber = new Intl.NumberFormat("en", {
 });
 
 /** 88662 → "88.7K". */
+export function formatCount(n: number): string {
+  return compactNumber.format(n);
+}
+
+/** 88662 → "88.7K". */
 export function formatStars(stars: number): string {
-  return compactNumber.format(stars);
+  return formatCount(stars);
 }
 
 const relativeTime = new Intl.RelativeTimeFormat("en", { numeric: "auto" });

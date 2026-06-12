@@ -109,6 +109,11 @@ func FetchedAt(v time.Time) predicate.Repo {
 	return predicate.Repo(sql.FieldEQ(FieldFetchedAt, v))
 }
 
+// ForksCount applies equality check predicate on the "forks_count" field. It's identical to ForksCountEQ.
+func ForksCount(v int) predicate.Repo {
+	return predicate.Repo(sql.FieldEQ(FieldForksCount, v))
+}
+
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
 func CreatedAtEQ(v time.Time) predicate.Repo {
 	return predicate.Repo(sql.FieldEQ(FieldCreatedAt, v))
@@ -752,6 +757,46 @@ func FetchedAtLT(v time.Time) predicate.Repo {
 // FetchedAtLTE applies the LTE predicate on the "fetched_at" field.
 func FetchedAtLTE(v time.Time) predicate.Repo {
 	return predicate.Repo(sql.FieldLTE(FieldFetchedAt, v))
+}
+
+// ForksCountEQ applies the EQ predicate on the "forks_count" field.
+func ForksCountEQ(v int) predicate.Repo {
+	return predicate.Repo(sql.FieldEQ(FieldForksCount, v))
+}
+
+// ForksCountNEQ applies the NEQ predicate on the "forks_count" field.
+func ForksCountNEQ(v int) predicate.Repo {
+	return predicate.Repo(sql.FieldNEQ(FieldForksCount, v))
+}
+
+// ForksCountIn applies the In predicate on the "forks_count" field.
+func ForksCountIn(vs ...int) predicate.Repo {
+	return predicate.Repo(sql.FieldIn(FieldForksCount, vs...))
+}
+
+// ForksCountNotIn applies the NotIn predicate on the "forks_count" field.
+func ForksCountNotIn(vs ...int) predicate.Repo {
+	return predicate.Repo(sql.FieldNotIn(FieldForksCount, vs...))
+}
+
+// ForksCountGT applies the GT predicate on the "forks_count" field.
+func ForksCountGT(v int) predicate.Repo {
+	return predicate.Repo(sql.FieldGT(FieldForksCount, v))
+}
+
+// ForksCountGTE applies the GTE predicate on the "forks_count" field.
+func ForksCountGTE(v int) predicate.Repo {
+	return predicate.Repo(sql.FieldGTE(FieldForksCount, v))
+}
+
+// ForksCountLT applies the LT predicate on the "forks_count" field.
+func ForksCountLT(v int) predicate.Repo {
+	return predicate.Repo(sql.FieldLT(FieldForksCount, v))
+}
+
+// ForksCountLTE applies the LTE predicate on the "forks_count" field.
+func ForksCountLTE(v int) predicate.Repo {
+	return predicate.Repo(sql.FieldLTE(FieldForksCount, v))
 }
 
 // And groups predicates with the AND operator between them.

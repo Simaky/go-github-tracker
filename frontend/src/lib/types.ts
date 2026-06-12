@@ -12,6 +12,7 @@ export interface Repo {
   language: string;
   html_url: string;
   notes: string;
+  forks_count: number;
   fetched_at: string;
   created_at: string;
   updated_at: string;

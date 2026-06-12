@@ -4,12 +4,13 @@ import { useTransition } from "react";
 
 import { refreshRepoAction } from "@/app/actions";
 import type { Repo } from "@/lib/types";
-import { formatRelativeTime, formatStars } from "@/lib/format";
+import { formatCount, formatRelativeTime, formatStars } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
 import {
   ExternalLinkIcon,
+  ForkIcon,
   PencilIcon,
   RefreshIcon,
   StarIcon,
@@ -70,6 +71,13 @@ export function RepoRow({ repo, onEdit, onDelete }: RepoRowProps) {
         <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700">
           <StarIcon className="size-4 text-amber-400" />
           {formatStars(repo.stars)}
+        </span>
+      </td>
+
+      <td className="px-4 py-3 align-top">
+        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-slate-700">
+          <ForkIcon className="size-4 text-slate-400" />
+          {formatCount(repo.forks_count)}
         </span>
       </td>
 

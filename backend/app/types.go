@@ -17,6 +17,7 @@ type Repo struct {
 	Language    string    `json:"language"`
 	HTMLURL     string    `json:"html_url"`
 	Notes       string    `json:"notes"`
+	ForksCount  int       `json:"forks_count"`
 	FetchedAt   time.Time `json:"fetched_at"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
@@ -32,12 +33,20 @@ type RepoMetadata struct {
 	Stars       int
 	Language    string
 	HTMLURL     string
+	ForksCount  int
 }
 
 // CreateRepoRequest is the body of POST /api/repos.
 type CreateRepoRequest struct {
 	Owner string `json:"owner"`
 	Name  string `json:"name"`
+}
+
+// TotalMetrics is the aggregate summary returned by GET /api/metrics.
+type TotalMetrics struct {
+	NumRepos         int    `json:"num_repos"`
+	TotalStars       int    `json:"total_stars"`
+	MostUsedLanguage string `json:"most_used_language"`
 }
 
 // Validate checks that owner and name are present and are single path segments

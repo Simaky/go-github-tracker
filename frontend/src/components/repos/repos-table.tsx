@@ -8,7 +8,7 @@ interface ReposTableProps {
   onDelete: (repo: Repo) => void;
 }
 
-const HEADERS = ["Repository", "Language", "Stars", "Updated", ""];
+const HEADERS = ["Repository", "Language", "Stars", "Forks", "Updated", ""];
 
 export function ReposTable({ repos, onEdit, onDelete }: ReposTableProps) {
   return (
