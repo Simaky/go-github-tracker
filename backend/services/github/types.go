@@ -14,6 +14,7 @@ type (
 		Owner       Owner  `json:"owner"`
 	}
 
+	// Owner is the repository's owner as returned by GitHub; only the login is read.
 	Owner struct {
 		Login string `json:"login"`
 	}
